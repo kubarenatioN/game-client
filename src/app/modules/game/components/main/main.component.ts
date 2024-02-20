@@ -1,13 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { UnitsService } from '@core/services';
-import { differenceInSeconds } from 'date-fns';
+import { RaidService, UnitsService } from '@core/services';
+import { differenceInMilliseconds, differenceInSeconds } from 'date-fns';
 import { BehaviorSubject, interval, of } from 'rxjs';
 import {
   distinctUntilChanged,
   map,
   shareReplay,
   startWith,
-  tap,
+  takeWhile,
 } from 'rxjs/operators';
 
 @Component({
@@ -17,9 +17,11 @@ import {
 })
 export class MainComponent implements OnInit {
   unitsService = inject(UnitsService);
+  raidsService = inject(RaidService);
 
-  unitsProgress: any[] = [];
-
+  /**
+   * TODO: Use signals
+   */
   units$ = new BehaviorSubject<any[]>([]);
 
   ngOnInit(): void {
@@ -30,9 +32,10 @@ export class MainComponent implements OnInit {
           return units.map((unit) => {
             return {
               ...unit,
-              countdown$: unit.raid_in_progress
-                ? this.setupRaidCountdown(unit.id, unit.raid_in_progress)
-                : of(null),
+              countdown$:
+                unit?.active_raid?.status === 'in_progress'
+                  ? this.setupRaidCountdown(unit.id, unit.active_raid)
+                  : of(null),
             };
           });
         }),
@@ -51,38 +54,76 @@ export class MainComponent implements OnInit {
         const updatedUnits = this.units$.value.slice();
         const updUnitIndex = updatedUnits.findIndex((u) => u.id === id);
         updatedUnits[updUnitIndex].countdown$ = this.setupRaidCountdown(
-          0,
+          updatedUnits[updUnitIndex].id,
           raid
         );
-        updatedUnits[updUnitIndex].raid_in_progress = raid;
+        updatedUnits[updUnitIndex].active_raid = raid;
         this.units$.next(updatedUnits);
       },
     });
   }
 
+  onComplete(unit: any) {
+    const { active_raid } = unit;
+    if (active_raid && active_raid.status === 'returned') {
+      this.raidsService.complete(active_raid.id).subscribe({
+        next: (res) => {
+          const updatedUnits = this.units$.value.slice();
+          const updUnitIndex = updatedUnits.findIndex((u) => u.id === unit.id);
+          updatedUnits[updUnitIndex].countdown$ = null;
+          updatedUnits[updUnitIndex].active_raid = null;
+          this.units$.next(updatedUnits);
+
+          console.log('after raid:', res);
+        },
+      });
+    }
+  }
+
   private setupRaidCountdown(unitId: number, raid: any) {
     const { startAt, endAt } = raid;
     const overallDiffSec = differenceInSeconds(endAt, startAt);
-    const currentDiffSec = differenceInSeconds(endAt, new Date());
-    console.log(overallDiffSec, currentDiffSec);
-    if (currentDiffSec > 0) {
-      return interval(100).pipe(
+    const currentDiffMs = differenceInMilliseconds(endAt, new Date());
+
+    if (currentDiffMs > 0) {
+      return interval(200).pipe(
         map((res) => {
-          const currentDiff = differenceInSeconds(endAt, new Date());
-          const percents = currentDiff / overallDiffSec;
+          const diffInMilliseconds = differenceInMilliseconds(
+            endAt,
+            new Date()
+          );
+          const percents = diffInMilliseconds / (overallDiffSec * 1000);
 
           return (1 - percents) * 100;
         }),
         distinctUntilChanged(),
-        tap({
-          next: (res) => {
-            console.log('raid ' + raid.id, res);
-          },
-        }),
-        startWith((1 - currentDiffSec / overallDiffSec) * 100)
+        startWith((1 - currentDiffMs / (overallDiffSec * 1000)) * 100),
+        takeWhile((val) => {
+          if (val >= 100) {
+            this.getRaidReturned(unitId, raid.id);
+            return false;
+          }
+          return true;
+        }, true)
       );
     }
 
     return of(null);
+  }
+
+  private getRaidReturned(unitId: number, raidId: number) {
+    this.getRaid(raidId).subscribe({
+      next: (raid: any) => {
+        const updatedUnits = this.units$.value.slice();
+        const updUnitIndex = updatedUnits.findIndex((u) => u.id === unitId);
+        updatedUnits[updUnitIndex].countdown$ = null;
+        updatedUnits[updUnitIndex].active_raid = raid;
+        this.units$.next(updatedUnits);
+      },
+    });
+  }
+
+  private getRaid(id: number) {
+    return this.raidsService.get(id);
   }
 }

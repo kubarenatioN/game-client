@@ -4,22 +4,21 @@
     <div class="unit-card">
       <h4>{{ unit.name }}</h4>
 
-      @if (unit.raid_in_progress && !unit.raid_returned) {
-      <button type="button" [disabled]="true">
-        Send to raid
-      </button>
-      }
-
-      @if (unit.raid_returned && !unit.raid_in_progress) {
-      <button type="button">
-        Complete
-      </button>
-      }
-
-      @if (!unit.raid_returned && !unit.raid_in_progress) {
+      @if (!unit.active_raid) {
       <button type="button" (click)="onSendToRaid(unit.id)">
         Send to raid
       </button>
+      }
+      @else {
+      @if (unit.active_raid.status === 'in_progress') {
+      <button type="button" [disabled]="true">
+        Send to raid
+      </button>
+      } @else if (unit.active_raid.status === 'returned') {
+      <button type="button" (click)="onComplete(unit)">
+        Complete
+      </button>
+      }
       }
 
       @if (unit.countdown$ | async; as progress) {
