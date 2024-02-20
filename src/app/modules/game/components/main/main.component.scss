@@ -1,0 +1,23 @@
+.cards-container {
+  display: flex;
+  gap: 16px;
+}
+
+.unit-card {
+  max-width: 200px;
+  padding: 12px;
+  border: 1px solid #ccc;
+
+  &__raid-progress {
+    margin-top: 16px;
+    width: 100%;
+    height: 6px;
+    background-color: #454545;
+  }
+
+  &__raid-progress-indicator {
+    height: 100%;
+    width: 0%;
+    background-color: #34ae00;
+  }
+}
