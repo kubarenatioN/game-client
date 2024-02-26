@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { environment } from 'environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -8,20 +7,18 @@ import { environment } from 'environments/environment';
 export class UnitsService {
   private http = inject(HttpClient);
 
-  private readonly apiBasePath = environment.gameApiBasePath;
-
   constructor() {}
 
   getAll() {
-    return this.http.get<any[]>(`${this.apiBasePath}/units`);
+    return this.http.get<any[]>(`/v1/units`);
   }
 
   getAllRaids() {
-    return this.http.get<any[]>(`${this.apiBasePath}/units/raids`);
+    return this.http.get<any[]>(`/v1/units/raids`);
   }
 
   sendToRaid(id: number) {
-    return this.http.post(`${this.apiBasePath}/raids`, {
+    return this.http.post(`/v1/raids`, {
       unitId: id,
     });
   }

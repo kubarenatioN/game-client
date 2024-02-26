@@ -1,1 +1,10 @@
-<p>register works!</p>
+<h1>Register</h1>
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <input type="text" placeholder="username" formControlName="login">
+  <input type="password" placeholder="password" formControlName="password">
+  <!-- <input type="password" placeholder="password" formControlName="password_repeat"> -->
+  <button>Register</button>
+</form>
+<div>
+  <a [routerLink]="['/auth/login']">Go to Login</a>
+</div>

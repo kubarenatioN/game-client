@@ -1,15 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { environment } from 'environments/environment';
+import { UserLoginModel, UserRegisterModel } from '../models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   http = inject(HttpClient);
-  apiUrl = environment.gameApiBasePath;
 
-  login(data: { login: string; password: string }) {
-    return this.http.post(`${this.apiUrl}/auth/login`, data);
+  login(data: UserLoginModel) {
+    return this.http.post(`/v1/auth/login`, data);
+  }
+
+  register(data: UserRegisterModel) {
+    return this.http.post(`/v1/auth/register`, data);
   }
 }
