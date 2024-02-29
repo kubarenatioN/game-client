@@ -5,17 +5,21 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { SessionService } from '../../services';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [RouterLink, ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
   private authService = inject(AuthService);
+  private router = inject(Router);
+  private sessionService = inject(SessionService);
 
   form = new FormGroup({
     login: new FormControl<string>('', {
@@ -47,7 +51,9 @@ export class LoginComponent {
       })
       .subscribe({
         next: (res) => {
-          console.log(res);
+          this.sessionService.session = res;
+
+          this.router.navigate(['/']);
         },
       });
   }

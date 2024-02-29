@@ -2,7 +2,7 @@
   <div class="cards-container">
     @for (unit of units$ | async; track unit.id) {
     <div class="unit-card">
-      <h4>{{ unit.name }}</h4>
+      <h4>#{{ unit.id }} {{ unit.model?.name }}</h4>
 
       @if (!unit.active_raid) {
       <button type="button" (click)="onSendToRaid(unit.id)">

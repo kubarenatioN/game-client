@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { environment } from 'environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -11,13 +10,10 @@ export class RaidService {
   constructor() {}
 
   get(id: number) {
-    return this.http.get(`${environment.gameApiBasePath}/raids/${id}`);
+    return this.http.get(`/v1/raids/${id}`);
   }
 
   complete(id: number) {
-    return this.http.post(
-      `${environment.gameApiBasePath}/raids/${id}/complete`,
-      {}
-    );
+    return this.http.post(`/v1/raids/${id}/complete`, {});
   }
 }
