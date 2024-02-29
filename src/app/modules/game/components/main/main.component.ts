@@ -1,7 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { Unit } from '@core/models';
 import { RaidService, UnitsService } from '@core/services';
 import { differenceInMilliseconds, differenceInSeconds } from 'date-fns';
-import { BehaviorSubject, interval, of } from 'rxjs';
+import { BehaviorSubject, Observable, interval, of } from 'rxjs';
 import {
   distinctUntilChanged,
   map,
@@ -9,6 +10,10 @@ import {
   startWith,
   takeWhile,
 } from 'rxjs/operators';
+
+interface BoardUnit extends Unit {
+  countdown$: Observable<number | null> | null;
+}
 
 @Component({
   selector: 'app-main',
@@ -22,7 +27,7 @@ export class MainComponent implements OnInit {
   /**
    * TODO: Use signals
    */
-  units$ = new BehaviorSubject<any[]>([]);
+  units$ = new BehaviorSubject<BoardUnit[]>([]);
 
   ngOnInit(): void {
     this.unitsService
@@ -63,8 +68,9 @@ export class MainComponent implements OnInit {
     });
   }
 
-  onComplete(unit: any) {
+  onComplete(unit: Unit) {
     const { active_raid } = unit;
+
     if (active_raid && active_raid.status === 'returned') {
       this.raidsService.complete(active_raid.id).subscribe({
         next: (res) => {
@@ -73,14 +79,15 @@ export class MainComponent implements OnInit {
           updatedUnits[updUnitIndex].countdown$ = null;
           updatedUnits[updUnitIndex].active_raid = null;
           this.units$.next(updatedUnits);
-
-          console.log('after raid:', res);
         },
       });
     }
   }
 
-  private setupRaidCountdown(unitId: number, raid: any) {
+  private setupRaidCountdown(
+    unitId: number,
+    raid: any
+  ): Observable<number | null> {
     const { startAt, endAt } = raid;
     const overallDiffSec = differenceInSeconds(endAt, startAt);
     const currentDiffMs = differenceInMilliseconds(endAt, new Date());

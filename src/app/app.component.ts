@@ -14,6 +14,8 @@ import { SessionService } from './modules/auth/services';
 export class AppComponent implements OnInit {
   http = inject(HttpClient);
 
+  user$ = this.sessionService.session$;
+
   constructor(private sessionService: SessionService) {}
 
   ngOnInit(): void {

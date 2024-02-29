@@ -1,5 +1,12 @@
 <header>
   <h1>Game...</h1>
+  <div>
+    @if (user$ | async; as user) {
+    User: {{ user.login }}
+    } @else {
+    User: not signed in
+    }
+  </div>
 </header>
 
 <main>
