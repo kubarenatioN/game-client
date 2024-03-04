@@ -1,33 +1,34 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { ReplaySubject, catchError, of, tap } from 'rxjs';
+import { Observable, ReplaySubject, catchError, of, tap } from 'rxjs';
+import { User } from '../models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SessionService {
-  private sessionStore: any | null = null;
-  private sessionStore$ = new ReplaySubject<any | null>(1);
+  private sessionStore: User | null = null;
+  private sessionStore$ = new ReplaySubject<User | null>(1);
 
   http = inject(HttpClient);
 
-  get session$() {
+  get session$(): Observable<User | null> {
     return this.sessionStore$;
   }
 
-  set session(val: any | null) {
+  set session(val: User | null) {
     this.sessionStore$.next(val);
     this.sessionStore = val;
   }
 
-  get session() {
+  get session(): User | null {
     return this.sessionStore;
   }
 
   constructor() {}
 
   getSession() {
-    return this.http.get(`/v1/auth/self`).pipe(
+    return this.http.get<User>(`/v1/auth/self`).pipe(
       catchError((err: HttpErrorResponse) => {
         /**
          * Handle session not found and set empty session
@@ -39,5 +40,19 @@ export class SessionService {
         this.session = res;
       })
     );
+  }
+
+  patchSessionState(update: Omit<User, 'id' | 'login'>) {
+    const oldSession = structuredClone(this.session);
+
+    if (oldSession === null) {
+      console.error('Nothing to patch');
+      return;
+    }
+
+    this.session = {
+      ...oldSession,
+      ...update,
+    };
   }
 }

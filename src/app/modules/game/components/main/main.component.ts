@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Unit } from '@core/models';
 import { RaidService, UnitsService } from '@core/services';
+import { SessionService } from 'app/modules/auth/services';
 import { differenceInMilliseconds, differenceInSeconds } from 'date-fns';
 import { BehaviorSubject, Observable, interval, of } from 'rxjs';
 import {
@@ -23,6 +24,7 @@ interface BoardUnit extends Unit {
 export class MainComponent implements OnInit {
   unitsService = inject(UnitsService);
   raidsService = inject(RaidService);
+  sessionService = inject(SessionService);
 
   /**
    * TODO: Use signals
@@ -79,6 +81,12 @@ export class MainComponent implements OnInit {
           updatedUnits[updUnitIndex].countdown$ = null;
           updatedUnits[updUnitIndex].active_raid = null;
           this.units$.next(updatedUnits);
+
+          this.sessionService.patchSessionState({
+            account: {
+              goldBalance: res.goldBalance,
+            },
+          });
         },
       });
     }

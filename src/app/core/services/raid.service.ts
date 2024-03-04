@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { UserAccount } from 'app/modules/auth/models';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +15,6 @@ export class RaidService {
   }
 
   complete(id: number) {
-    return this.http.post(`/v1/raids/${id}/complete`, {});
+    return this.http.post<UserAccount>(`/v1/raids/${id}/complete`, {});
   }
 }
