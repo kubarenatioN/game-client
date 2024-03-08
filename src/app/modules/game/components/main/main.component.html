@@ -4,6 +4,15 @@
     @for (unit of units$ | async; track unit.id) {
     <div class="unit-card">
       <h4>#{{ unit.id }} {{ unit.model?.name }}</h4>
+      <div>
+        <div>
+          Level {{ unit.level }}.
+        </div>
+        <div>
+          Exp: {{ unit.exp | number : '1.2-2'}}
+        </div>
+      </div>
+      <br>
 
       @if (!unit.active_raid) {
       <button type="button" (click)="onSendToRaid(unit.id)">

@@ -2,6 +2,9 @@ import { Raid } from './raids.model';
 
 export interface Unit {
   id: number;
+  level: number;
+  exp: number;
+
   active_raid?: Raid | null;
 
   // relations

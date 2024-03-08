@@ -55,4 +55,8 @@ export class SessionService {
       ...update,
     };
   }
+
+  disposeSession() {
+    this.session = null;
+  }
 }
