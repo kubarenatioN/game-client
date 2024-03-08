@@ -2,7 +2,11 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Unit } from '@core/models';
 import { RaidService, UnitsService } from '@core/services';
 import { SessionService } from 'app/modules/auth/services';
-import { differenceInMilliseconds, differenceInSeconds } from 'date-fns';
+import {
+  differenceInMilliseconds,
+  differenceInSeconds,
+  secondsToMinutes,
+} from 'date-fns';
 import { BehaviorSubject, Observable, interval, of } from 'rxjs';
 import {
   distinctUntilChanged,
@@ -14,6 +18,7 @@ import {
 
 interface BoardUnit extends Unit {
   countdown$: Observable<number | null> | null;
+  raidDurationCounter$: Observable<string> | null;
 }
 
 @Component({
@@ -41,8 +46,12 @@ export class MainComponent implements OnInit {
               ...unit,
               countdown$:
                 unit?.active_raid?.status === 'in_progress'
-                  ? this.setupRaidCountdown(unit.id, unit.active_raid)
+                  ? this.setupRaidProgressCounter(unit.id, unit.active_raid)
                   : of(null),
+              raidDurationCounter$:
+                unit?.active_raid?.status === 'in_progress'
+                  ? this.setupRaidCountdown(unit.id, unit.active_raid)
+                  : null,
             };
           });
         }),
@@ -60,11 +69,20 @@ export class MainComponent implements OnInit {
       next: (raid: any) => {
         const updatedUnits = this.units$.value.slice();
         const updUnitIndex = updatedUnits.findIndex((u) => u.id === id);
-        updatedUnits[updUnitIndex].countdown$ = this.setupRaidCountdown(
+
+        /**
+         * TODO:
+         * join counter stream in one property
+         * and extend in with required formatting for progress-bar and string countdown
+         */
+        updatedUnits[updUnitIndex].countdown$ = this.setupRaidProgressCounter(
           updatedUnits[updUnitIndex].id,
           raid
         );
         updatedUnits[updUnitIndex].active_raid = raid;
+        updatedUnits[updUnitIndex].raidDurationCounter$ =
+          this.setupRaidCountdown(updatedUnits[updUnitIndex].id, raid);
+
         this.units$.next(updatedUnits);
       },
     });
@@ -80,6 +98,7 @@ export class MainComponent implements OnInit {
           const updUnitIndex = updatedUnits.findIndex((u) => u.id === unit.id);
           updatedUnits[updUnitIndex].countdown$ = null;
           updatedUnits[updUnitIndex].active_raid = null;
+          updatedUnits[updUnitIndex].raidDurationCounter$ = null;
           this.units$.next(updatedUnits);
 
           this.sessionService.patchSessionState({
@@ -92,7 +111,35 @@ export class MainComponent implements OnInit {
     }
   }
 
-  private setupRaidCountdown(
+  private setupRaidCountdown(unitId: number, raid: any) {
+    const { endAt } = raid;
+
+    return interval(500).pipe(
+      startWith(differenceInSeconds(endAt, Date.now())),
+      map(() => {
+        const secondsDiff = differenceInSeconds(endAt, Date.now());
+
+        return secondsDiff;
+      }),
+      takeWhile((secondsDiff) => {
+        const endsAtMoreThanNow = secondsDiff > 0;
+
+        return endsAtMoreThanNow;
+      }, true),
+      distinctUntilChanged(),
+      map((secondsDiff) => {
+        if (secondsDiff > 60) {
+          const minutes = secondsToMinutes(secondsDiff);
+          const seconds = secondsDiff - minutes * 60;
+          return `${minutes}m ${seconds}s`;
+        }
+
+        return `${secondsDiff}s`;
+      })
+    );
+  }
+
+  private setupRaidProgressCounter(
     unitId: number,
     raid: any
   ): Observable<number | null> {
@@ -133,6 +180,8 @@ export class MainComponent implements OnInit {
         const updUnitIndex = updatedUnits.findIndex((u) => u.id === unitId);
         updatedUnits[updUnitIndex].countdown$ = null;
         updatedUnits[updUnitIndex].active_raid = raid;
+        updatedUnits[updUnitIndex].raidDurationCounter$ = null;
+
         this.units$.next(updatedUnits);
       },
     });

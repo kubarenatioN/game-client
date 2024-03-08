@@ -1,4 +1,5 @@
 <div class="wrapper">
+  <h4>Your units</h4>
   <div class="cards-container">
     @for (unit of units$ | async; track unit.id) {
     <div class="unit-card">
@@ -26,7 +27,13 @@
         <div class="unit-card__raid-progress-indicator" [style.width.%]="progress"></div>
       </div>
       }
+      @if (unit.raidDurationCounter$ | async; as countdown) {
+      <div>{{ countdown }}</div>
+      }
     </div>
+    }
+    @empty {
+    <div>No units yet...</div>
     }
   </div>
 </div>
