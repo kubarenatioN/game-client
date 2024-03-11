@@ -4,6 +4,7 @@ export interface Unit {
   id: number;
   level: number;
   exp: number;
+  maxExp: number;
 
   active_raid?: Raid | null;
 

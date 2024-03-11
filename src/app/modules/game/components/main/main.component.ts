@@ -111,6 +111,10 @@ export class MainComponent implements OnInit {
     }
   }
 
+  onUpgrade(id: number) {
+    console.log('implement upgrade', id);
+  }
+
   private setupRaidCountdown(unitId: number, raid: any) {
     const { endAt } = raid;
 
