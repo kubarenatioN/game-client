@@ -25,3 +25,4 @@ $my-theme: mat.define-light-theme(
 // passed to `define-light-theme` omits typography, `button-theme` will not
 // emit any typography styles.
 @include mat.button-theme($my-theme);
+@include mat.dialog-theme($my-theme);

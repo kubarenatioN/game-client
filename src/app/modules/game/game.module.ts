@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule, Routes } from '@angular/router';
 import { MainComponent } from './components';
 import { GameService } from './services/game.service';
@@ -21,6 +22,7 @@ const routes: Routes = [
     HttpClientModule,
 
     MatButtonModule,
+    MatDialogModule,
   ],
   providers: [GameService],
 })
