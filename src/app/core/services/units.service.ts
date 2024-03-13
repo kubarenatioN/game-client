@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Unit } from '@core/models';
+import { Unit, UnitUpgrade } from '@core/models';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -23,5 +23,9 @@ export class UnitsService {
     return this.http.post(`/v1/raids`, {
       unitId: id,
     });
+  }
+
+  upgrade(id: number) {
+    return this.http.post<UnitUpgrade>(`/v1/units/${id}/upgrade`, {});
   }
 }

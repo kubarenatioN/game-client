@@ -1,5 +1,10 @@
 import { Raid } from './raids.model';
 
+export interface UnitModel {
+  id: number;
+  name: string;
+}
+
 export interface Unit {
   id: number;
   level: number;
@@ -8,11 +13,18 @@ export interface Unit {
 
   active_raid?: Raid | null;
 
+  active_upgrade?: UnitUpgrade | null;
+
   // relations
   model?: UnitModel | null;
 }
 
-export interface UnitModel {
+export type UnitUpgradeStatusType = 'in_progress' | 'completed';
+
+export interface UnitUpgrade {
   id: number;
-  name: string;
+  endAt: string;
+  status: UnitUpgradeStatusType;
+
+  unit: Unit;
 }

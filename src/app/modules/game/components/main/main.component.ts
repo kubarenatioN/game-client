@@ -112,7 +112,11 @@ export class MainComponent implements OnInit {
   }
 
   onUpgrade(id: number) {
-    console.log('implement upgrade', id);
+    this.unitsService.upgrade(id).subscribe({
+      next: (res) => {
+        console.log('after upgrade', res);
+      },
+    });
   }
 
   private setupRaidCountdown(unitId: number, raid: any) {

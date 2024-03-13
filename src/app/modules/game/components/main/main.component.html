@@ -1,5 +1,6 @@
 <div class="wrapper container">
   <h4>Your units</h4>
+
   <div class="cards-container container">
     @for (unit of units$ | async; track unit.id) {
     <div class="unit-card">
@@ -14,33 +15,42 @@
       </div>
       <br>
 
-      <div>
-        <button mat-raised-button>test 1</button>
-        <button mat-raised-button color="primary">test 2</button>
-        <button mat-raised-button color="accent">test 3</button>
-      </div>
-
       @if (!unit.active_raid) {
 
-      @if (unit.exp < unit.maxExp) { <!-- -->
-        <button type="button" (click)="onSendToRaid(unit.id)">
+      @if (unit.exp < unit.maxExp)
+        {
+        <!--
+        -->
+        @if (!unit.active_upgrade) {
+        <button mat-raised-button
+                color="accent"
+                type="button"
+                (click)="onSendToRaid(unit.id)">
           Send to raid
         </button>
+        }
         }
         }
         @else {
         @if (unit.active_raid.status === 'in_progress') {
-        <button type="button" [disabled]="true">
+        <button type="button"
+                mat-raised-button
+                color="primary"
+                [disabled]="true">
           Send to raid
         </button>
-        } @else if (unit.active_raid.status === 'returned') {
-        <button type="button" (click)="onComplete(unit)">
+        }
+        @else if (unit.active_raid.status === 'returned') {
+        <button mat-raised-button
+                type="button"
+                color="primary"
+                (click)="onComplete(unit)">
           Complete
         </button>
         }
         }
 
-        @if(unit.exp > unit.maxExp) {
+        @if(unit.exp > unit.maxExp && !unit.active_upgrade) {
         <button (click)="onUpgrade(unit.id)">Upgrade</button>
         } @else {
         <button disabled>Upgrade</button>
@@ -48,7 +58,8 @@
 
         @if (unit.countdown$ | async; as progress) {
         <div class="unit-card__raid-progress">
-          <div class="unit-card__raid-progress-indicator" [style.width.%]="progress"></div>
+          <div class="unit-card__raid-progress-indicator"
+               [style.width.%]="progress"></div>
         </div>
         }
         @if (unit.raidDurationCounter$ | async; as countdown) {
