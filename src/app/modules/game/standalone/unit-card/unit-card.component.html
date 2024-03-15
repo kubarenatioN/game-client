@@ -1,0 +1,58 @@
+<div class="unit-card">
+  <h4>#{{ unit.id }} {{ unit.model?.name }}</h4>
+  <div>
+    <div>
+      Level {{ unit.level }}.
+    </div>
+    <div>
+      Exp: {{ unit.exp | number : '1.2-2' }}/{{ unit.maxExp | number : '1.2-2' }}
+    </div>
+  </div>
+
+  <div class="raid">
+    @if(canSendToRaid()) {
+    <button mat-raised-button
+            color="accent"
+            type="button"
+            [disabled]="isLoading$()"
+            (click)="onSendToRaid(unit.id)">
+      Send to raid
+    </button>
+    }
+  </div>
+
+  @if (canCollectLoot()) {
+  <div>
+    <button mat-raised-button
+            type="button"
+            color="primary"
+            [disabled]="isLoading$()"
+            (click)="onCollectLoot(unit)">
+      Collect Loot
+    </button>
+  </div>
+  }
+
+  @if(unit.exp > unit.maxExp && !unit.active_upgrade) {
+  <button (click)="onUpgrade(unit.id)">Upgrade</button>
+  } @else {
+  <button disabled>Upgrade</button>
+  }
+
+  <div class="raid-progress">
+    <!-- @if (unit.raidCountdown$ | async; as progress) {
+    <div>
+      {{ progress }}
+    </div>
+    } -->
+    @if (unit.raidProgress$ | async; as progress) {
+    <div class="unit-card__raid-progress">
+      <div class="unit-card__raid-progress-indicator"
+           [style.width.%]="progress"></div>
+    </div>
+    }
+    <!-- @if (unit.raidDurationCounter$ | async; as countdown) {
+    <div>{{ countdown }}</div>
+    } -->
+  </div>
+</div>

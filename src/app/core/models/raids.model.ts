@@ -12,3 +12,10 @@ export interface Raid {
   // relations
   unit?: Unit;
 }
+
+export interface RaidCollectResponse {
+  id: number;
+  goldBalance: number;
+
+  unit: Unit;
+}

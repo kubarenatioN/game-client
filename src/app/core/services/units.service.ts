@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Unit, UnitUpgrade } from '@core/models';
+import { Raid, Unit, UnitUpgrade } from '@core/models';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -11,6 +11,15 @@ export class UnitsService {
 
   constructor() {}
 
+  /**
+   * Gets single unit by ID
+   *
+   * @param id unit ID
+   */
+  get(id: number) {
+    return this.http.get<Unit>(`/v1/units/${id}`);
+  }
+
   getAll(): Observable<Unit[]> {
     return this.http.get<Unit[]>(`/v1/units`);
   }
@@ -20,7 +29,7 @@ export class UnitsService {
   // }
 
   sendToRaid(id: number) {
-    return this.http.post(`/v1/raids`, {
+    return this.http.post<Unit>(`/v1/raids`, {
       unitId: id,
     });
   }

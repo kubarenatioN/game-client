@@ -2,70 +2,12 @@
   <h4>Your units</h4>
 
   <div class="cards-container container">
-    @for (unit of units$ | async; track unit.id) {
-    <div class="unit-card">
-      <h4>#{{ unit.id }} {{ unit.model?.name }}</h4>
-      <div>
-        <div>
-          Level {{ unit.level }}.
-        </div>
-        <div>
-          Exp: {{ unit.exp | number : '1.2-2' }}/{{ unit.maxExp | number : '1.2-2' }}
-        </div>
-      </div>
-      <br>
-
-      @if (!unit.active_raid) {
-
-      @if (unit.exp < unit.maxExp)
-        {
-        <!--
-        -->
-        @if (!unit.active_upgrade) {
-        <button mat-raised-button
-                color="accent"
-                type="button"
-                (click)="onSendToRaid(unit.id)">
-          Send to raid
-        </button>
-        }
-        }
-        }
-        @else {
-        @if (unit.active_raid.status === 'in_progress') {
-        <button type="button"
-                mat-raised-button
-                color="primary"
-                [disabled]="true">
-          Send to raid
-        </button>
-        }
-        @else if (unit.active_raid.status === 'returned') {
-        <button mat-raised-button
-                type="button"
-                color="primary"
-                (click)="onComplete(unit)">
-          Complete
-        </button>
-        }
-        }
-
-        @if(unit.exp > unit.maxExp && !unit.active_upgrade) {
-        <button (click)="onUpgrade(unit.id)">Upgrade</button>
-        } @else {
-        <button disabled>Upgrade</button>
-        }
-
-        @if (unit.countdown$ | async; as progress) {
-        <div class="unit-card__raid-progress">
-          <div class="unit-card__raid-progress-indicator"
-               [style.width.%]="progress"></div>
-        </div>
-        }
-        @if (unit.raidDurationCounter$ | async; as countdown) {
-        <div>{{ countdown }}</div>
-        }
-    </div>
+    @for (unit of units$(); track unit.id) {
+    <app-unit-card [unit]="unit"
+                   [isLoading$]="unit.isLoading$"
+                   (collected)="onCollectRaidLoot($event)"
+                   (sentToRaid)="onSendToRaid($event)"
+                   (raidReturned)="onRaidReturned($event)"></app-unit-card>
     }
     @empty {
     <div>No units yet...</div>

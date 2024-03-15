@@ -1,24 +1,25 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  WritableSignal,
+  inject,
+  signal,
+} from '@angular/core';
 import { Unit } from '@core/models';
 import { RaidService, UnitsService } from '@core/services';
 import { SessionService } from 'app/modules/auth/services';
-import {
-  differenceInMilliseconds,
-  differenceInSeconds,
-  secondsToMinutes,
-} from 'date-fns';
-import { BehaviorSubject, Observable, interval, of } from 'rxjs';
-import {
-  distinctUntilChanged,
-  map,
-  shareReplay,
-  startWith,
-  takeWhile,
-} from 'rxjs/operators';
+import { map } from 'rxjs';
 
 interface BoardUnit extends Unit {
-  countdown$: Observable<number | null> | null;
-  raidDurationCounter$: Observable<string> | null;
+  isLoading$: WritableSignal<boolean>;
+}
+
+class BoardUnit {
+  constructor(data: Unit) {
+    this.isLoading$ = signal(false);
+
+    Object.assign(this, data);
+  }
 }
 
 @Component({
@@ -31,171 +32,83 @@ export class MainComponent implements OnInit {
   raidsService = inject(RaidService);
   sessionService = inject(SessionService);
 
-  /**
-   * TODO: Use signals
-   */
-  units$ = new BehaviorSubject<BoardUnit[]>([]);
+  units$ = signal<BoardUnit[]>([]);
+
+  get units(): BoardUnit[] {
+    return this.units$();
+  }
 
   ngOnInit(): void {
     this.unitsService
       .getAll()
       .pipe(
         map((units) => {
-          return units.map((unit) => {
-            return {
-              ...unit,
-              countdown$:
-                unit?.active_raid?.status === 'in_progress'
-                  ? this.setupRaidProgressCounter(unit.id, unit.active_raid)
-                  : of(null),
-              raidDurationCounter$:
-                unit?.active_raid?.status === 'in_progress'
-                  ? this.setupRaidCountdown(unit.id, unit.active_raid)
-                  : null,
-            };
+          return units.map((u) => {
+            return new BoardUnit(u);
           });
-        }),
-        shareReplay(1)
+        })
       )
       .subscribe({
         next: (res) => {
-          this.units$.next(res);
+          this.units$.set(res);
         },
       });
   }
 
-  onSendToRaid(id: number) {
-    this.unitsService.sendToRaid(id).subscribe({
-      next: (raid: any) => {
-        const updatedUnits = this.units$.value.slice();
-        const updUnitIndex = updatedUnits.findIndex((u) => u.id === id);
+  onSendToRaid(unitId: number) {
+    const unit = this.units.find((u) => u.id === unitId);
+    unit?.isLoading$.set(true);
 
-        /**
-         * TODO:
-         * join counter stream in one property
-         * and extend in with required formatting for progress-bar and string countdown
-         */
-        updatedUnits[updUnitIndex].countdown$ = this.setupRaidProgressCounter(
-          updatedUnits[updUnitIndex].id,
-          raid
-        );
-        updatedUnits[updUnitIndex].active_raid = raid;
-        updatedUnits[updUnitIndex].raidDurationCounter$ =
-          this.setupRaidCountdown(updatedUnits[updUnitIndex].id, raid);
-
-        this.units$.next(updatedUnits);
-      },
-    });
-  }
-
-  onComplete(unit: Unit) {
-    const { active_raid } = unit;
-
-    if (active_raid && active_raid.status === 'returned') {
-      this.raidsService.complete(active_raid.id).subscribe({
-        next: (res) => {
-          const updatedUnits = this.units$.value.slice();
-          const updUnitIndex = updatedUnits.findIndex((u) => u.id === unit.id);
-          updatedUnits[updUnitIndex].countdown$ = null;
-          updatedUnits[updUnitIndex].active_raid = null;
-          updatedUnits[updUnitIndex].raidDurationCounter$ = null;
-          this.units$.next(updatedUnits);
-
-          this.sessionService.patchSessionState({
-            account: {
-              goldBalance: res.goldBalance,
-            },
-          });
-        },
-      });
-    }
-  }
-
-  onUpgrade(id: number) {
-    this.unitsService.upgrade(id).subscribe({
+    this.unitsService.sendToRaid(unitId).subscribe({
       next: (res) => {
-        console.log('after upgrade', res);
-      },
-    });
-  }
-
-  private setupRaidCountdown(unitId: number, raid: any) {
-    const { endAt } = raid;
-
-    return interval(500).pipe(
-      startWith(differenceInSeconds(endAt, Date.now())),
-      map(() => {
-        const secondsDiff = differenceInSeconds(endAt, Date.now());
-
-        return secondsDiff;
-      }),
-      takeWhile((secondsDiff) => {
-        const endsAtMoreThanNow = secondsDiff > 0;
-
-        return endsAtMoreThanNow;
-      }, true),
-      distinctUntilChanged(),
-      map((secondsDiff) => {
-        if (secondsDiff > 60) {
-          const minutes = secondsToMinutes(secondsDiff);
-          const seconds = secondsDiff - minutes * 60;
-          return `${minutes}m ${seconds}s`;
+        const { active_raid } = res;
+        if (!active_raid) {
+          throw new Error('No new raid found');
         }
 
-        return `${secondsDiff}s`;
-      })
-    );
-  }
+        const changedUnitIndex = this.units.findIndex((u) => u.id === res.id);
+        const unitToUpdate = {
+          ...this.units[changedUnitIndex],
+          active_raid: res.active_raid,
+        };
 
-  private setupRaidProgressCounter(
-    unitId: number,
-    raid: any
-  ): Observable<number | null> {
-    const { startAt, endAt } = raid;
-    const overallDiffSec = differenceInSeconds(endAt, startAt);
-    const currentDiffMs = differenceInMilliseconds(endAt, new Date());
+        this.units[changedUnitIndex] = unitToUpdate;
 
-    if (currentDiffMs > 0) {
-      return interval(200).pipe(
-        map((res) => {
-          const diffInMilliseconds = differenceInMilliseconds(
-            endAt,
-            new Date()
-          );
-          const percents = diffInMilliseconds / (overallDiffSec * 1000);
-
-          return (1 - percents) * 100;
-        }),
-        distinctUntilChanged(),
-        startWith((1 - currentDiffMs / (overallDiffSec * 1000)) * 100),
-        takeWhile((val) => {
-          if (val >= 100) {
-            this.getRaidReturned(unitId, raid.id);
-            return false;
-          }
-          return true;
-        }, true)
-      );
-    }
-
-    return of(null);
-  }
-
-  private getRaidReturned(unitId: number, raidId: number) {
-    this.getRaid(raidId).subscribe({
-      next: (raid: any) => {
-        const updatedUnits = this.units$.value.slice();
-        const updUnitIndex = updatedUnits.findIndex((u) => u.id === unitId);
-        updatedUnits[updUnitIndex].countdown$ = null;
-        updatedUnits[updUnitIndex].active_raid = raid;
-        updatedUnits[updUnitIndex].raidDurationCounter$ = null;
-
-        this.units$.next(updatedUnits);
+        this.units$.set([...this.units]);
       },
     });
   }
 
-  private getRaid(id: number) {
-    return this.raidsService.get(id);
+  onRaidReturned(unitId: number): void {
+    const index = this.units.findIndex((u) => u.id === unitId);
+
+    this.unitsService
+      .get(unitId)
+      .pipe(map((u) => new BoardUnit(u)))
+      .subscribe({
+        next: (res) => {
+          this.units[index] = res;
+          this.units$.set([...this.units]);
+        },
+      });
+  }
+
+  onCollectRaidLoot(raidId: number) {
+    this.raidsService.complete(raidId).subscribe({
+      next: (res) => {
+        const changedUnitIndex = this.units.findIndex(
+          (u) => u.id === res.unit.id
+        );
+
+        this.units[changedUnitIndex] = new BoardUnit(res.unit);
+
+        this.units$.set(this.units);
+        this.sessionService.patchSessionState({
+          account: {
+            goldBalance: res.goldBalance,
+          },
+        });
+      },
+    });
   }
 }

@@ -5,12 +5,14 @@ export interface UnitModel {
   name: string;
 }
 
-export interface Unit {
+export interface UnitBase {
   id: number;
   level: number;
   exp: number;
   maxExp: number;
+}
 
+export interface Unit extends UnitBase {
   active_raid?: Raid | null;
 
   active_upgrade?: UnitUpgrade | null;
