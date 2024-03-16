@@ -1,0 +1,70 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  gap: 8px;
+  border: 1px solid #ccc;
+
+  &__img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+  }
+}
+
+.raid-progress {
+  padding-top: 8px;
+
+  &__container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+  }
+
+  &__bar {
+    max-width: 120px;
+    width: 100%;
+    height: 8px;
+    background-color: #454545;
+    overflow: hidden;
+    border-radius: 4px;
+
+    &-indicator {
+      height: 100%;
+      width: 0%;
+      background-color: #34ae00;
+    }
+  }
+}
+
+.upgrade-progress {
+  padding-top: 8px;
+
+  &__container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+  }
+
+  &__bar {
+    max-width: 120px;
+    width: 100%;
+    height: 8px;
+    background-color: #454545;
+    overflow: hidden;
+    border-radius: 4px;
+
+    &-indicator {
+      height: 100%;
+      width: 0%;
+      background-color: #42b4ce;
+    }
+  }
+}

@@ -6,9 +6,16 @@ export interface Raid {
   id: number;
 
   status: RaidStatus;
-  startAt: Date;
-  endAt: Date;
+  startAt: string;
+  endAt: string;
 
   // relations
   unit?: Unit;
+}
+
+export interface RaidCollectResponse {
+  id: number;
+  goldBalance: number;
+
+  unit: Unit;
 }

@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { RaidCollectResponse } from '@core/models';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +14,15 @@ export class RaidService {
     return this.http.get(`/v1/raids/${id}`);
   }
 
-  complete(id: number) {
-    return this.http.post(`/v1/raids/${id}/complete`, {});
+  /**
+   * Completes raid and collects loot
+   *
+   * @param raidId raid ID
+   */
+  complete(raidId: number) {
+    return this.http.post<RaidCollectResponse>(
+      `/v1/raids/${raidId}/complete`,
+      {}
+    );
   }
 }

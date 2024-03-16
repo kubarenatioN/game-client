@@ -1,0 +1,17 @@
+$container-width-xl: 1440px;
+$container-width-l: 1200px;
+
+$space-s: 6px;
+$space-md: 8px;
+$space-l: 12px;
+$space-xl: 16px;
+
+:root {
+  --container-width-xl: #{$container-width-xl};
+  --container-width-l: #{$container-width-l};
+
+  --space-s: #{$space-s};
+  --space-md: #{$space-md};
+  --space-l: #{$space-l};
+  --space-xl: #{$space-xl};
+}

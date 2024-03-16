@@ -1,32 +1,18 @@
-<div class="wrapper">
-  <div class="cards-container">
-    @for (unit of units$ | async; track unit.id) {
-    <div class="unit-card">
-      <h4>#{{ unit.id }} {{ unit.model?.name }}</h4>
+<div class="wrapper container">
+  <h4>Your units</h4>
 
-      @if (!unit.active_raid) {
-      <button type="button" (click)="onSendToRaid(unit.id)">
-        Send to raid
-      </button>
-      }
-      @else {
-      @if (unit.active_raid.status === 'in_progress') {
-      <button type="button" [disabled]="true">
-        Send to raid
-      </button>
-      } @else if (unit.active_raid.status === 'returned') {
-      <button type="button" (click)="onComplete(unit)">
-        Complete
-      </button>
-      }
-      }
-
-      @if (unit.countdown$ | async; as progress) {
-      <div class="unit-card__raid-progress">
-        <div class="unit-card__raid-progress-indicator" [style.width.%]="progress"></div>
-      </div>
-      }
-    </div>
+  <div class="cards-container container">
+    @for (unit of units$(); track unit.id) {
+    <app-unit-card [unit]="unit"
+                   [isLoading$]="unit.isLoading$"
+                   (collected)="onCollectRaidLoot($event)"
+                   (sentToRaid)="onSendToRaid($event)"
+                   (raidReturned)="onRaidReturned($event)"
+                   (upgrade)="onUpgrade($event)"
+                   (upgradeCompleted)="onUpgradeCompleted($event)"></app-unit-card>
+    }
+    @empty {
+    <div>No units yet...</div>
     }
   </div>
 </div>

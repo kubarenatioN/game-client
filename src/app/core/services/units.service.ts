@@ -11,17 +11,26 @@ export class UnitsService {
 
   constructor() {}
 
+  /**
+   * Gets single unit by ID
+   *
+   * @param id unit ID
+   */
+  get(id: number) {
+    return this.http.get<Unit>(`/v1/units/${id}`);
+  }
+
   getAll(): Observable<Unit[]> {
     return this.http.get<Unit[]>(`/v1/units`);
   }
 
-  // getAllRaids() {
-  //   return this.http.get<any[]>(`/v1/units/raids`);
-  // }
-
   sendToRaid(id: number) {
-    return this.http.post(`/v1/raids`, {
+    return this.http.post<Unit>(`/v1/raids`, {
       unitId: id,
     });
+  }
+
+  upgrade(id: number) {
+    return this.http.post<Unit>(`/v1/units/${id}/upgrade`, {});
   }
 }

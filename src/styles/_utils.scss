@@ -1,0 +1,11 @@
+.container {
+  max-width: var(--container-width-l);
+  padding: 0 var(--space-l);
+  margin: 0 auto;
+}
+
+.container-xl {
+  max-width: var(--container-width-xl);
+  padding: 0 var(--space-xl);
+  margin: 0 auto;
+}

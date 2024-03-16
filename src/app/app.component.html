@@ -1,11 +1,19 @@
-<header>
-  <h1>Game...</h1>
-  <div>
-    @if (user$ | async; as user) {
-    User: {{ user.login }}
-    } @else {
-    User: not signed in
-    }
+<header class="container">
+  <div class="row-1">
+    <div>
+      @if (user$ | async; as user) {
+      <span>
+        User: {{ user.login }} |
+      </span>
+      <span>
+        Balance: {{ user.account.goldBalance | number : '1.2-2' }}
+      </span>
+      } @else {
+      <span>
+        User: not signed in
+      </span>
+      }
+    </div>
   </div>
 </header>
 

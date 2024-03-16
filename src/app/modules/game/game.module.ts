@@ -1,16 +1,19 @@
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+import { NgModule } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule, Routes } from '@angular/router';
 import { MainComponent } from './components';
 import { GameService } from './services/game.service';
-import { HttpClientModule } from '@angular/common/http';
+import { UnitCardComponent } from './standalone/unit-card/unit-card.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: MainComponent
-  }
-]
+    component: MainComponent,
+  },
+];
 
 @NgModule({
   declarations: [MainComponent],
@@ -18,7 +21,12 @@ const routes: Routes = [
     CommonModule,
     RouterModule.forChild(routes),
     HttpClientModule,
+
+    MatButtonModule,
+    MatDialogModule,
+
+    UnitCardComponent,
   ],
-  providers: [GameService]
+  providers: [GameService],
 })
-export class GameModule { }
+export class GameModule {}

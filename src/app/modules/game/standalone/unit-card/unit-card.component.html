@@ -1,0 +1,74 @@
+<div class="card">
+  <img class="card__img"
+       [src]="apiBaseUrl + '/assets/game/images/units/'+ unit.model?.id + '.webp'"
+       [alt]="unit.model?.name">
+  <h4>#{{ unit.id }} {{ unit.model?.name }}</h4>
+  <div>
+    <div>
+      Level {{ unit.level }}.
+    </div>
+    <div>
+      Exp: {{ unit.exp | number : '1.2-2' }}/{{ unit.maxExp | number : '1.2-2' }}
+    </div>
+  </div>
+
+  @if(canSendToRaid()) {
+  <div class="raid">
+    <button mat-raised-button
+            color="accent"
+            type="button"
+            [disabled]="isLoading$()"
+            (click)="onSendToRaid(unit.id)">
+      Send to raid
+    </button>
+  </div>
+  }
+
+  @if (canCollectLoot()) {
+  <div>
+    <button mat-stroked-button
+            type="button"
+            color="accent"
+            [disabled]="isLoading$()"
+            (click)="onCollectLoot(unit)">
+      Collect Loot
+    </button>
+  </div>
+  }
+
+  @if(unit.exp > unit.maxExp && canUpgrade()) {
+  <button mat-raised-button
+          type="button"
+          color="accent"
+          [disabled]="isLoading$()"
+          (click)="onUpgrade(unit.id)">Upgrade</button>
+  }
+
+  @if (unit.active_raid) {
+  <div class="raid-progress__container">
+    @if (unit.raidTimer$ | async; as duration) {
+    <div class="raid-progress__duration">raid: {{ duration }}</div>
+    }
+    @if (unit.raidProgress$ | async; as progress) {
+    <div class="raid-progress__bar">
+      <div class="raid-progress__bar-indicator"
+           [style.width.%]="progress"></div>
+    </div>
+    }
+  </div>
+  }
+
+  @if (unit.active_upgrade) {
+  <div class="upgrade-progress__container">
+    @if (unit.upgradeTimer$ | async; as duration) {
+    <div class="upgrade-progress__duration">upgrade: {{ duration }}</div>
+    }
+    @if (unit.upgradeProgress$ | async; as progress) {
+    <div class="upgrade-progress__bar">
+      <div class="upgrade-progress__bar-indicator"
+           [style.width.%]="progress"></div>
+    </div>
+    }
+  </div>
+  }
+</div>

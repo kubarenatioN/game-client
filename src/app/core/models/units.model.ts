@@ -1,14 +1,33 @@
 import { Raid } from './raids.model';
 
-export interface Unit {
+export interface UnitModel {
   id: number;
+  name: string;
+}
+
+export interface UnitBase {
+  id: number;
+  level: number;
+  exp: number;
+  maxExp: number;
+}
+
+export interface Unit extends UnitBase {
   active_raid?: Raid | null;
+
+  active_upgrade?: UnitUpgrade | null;
 
   // relations
   model?: UnitModel | null;
 }
 
-export interface UnitModel {
+export type UnitUpgradeStatusType = 'in_progress' | 'completed';
+
+export interface UnitUpgrade {
   id: number;
-  name: string;
+  startAt: string;
+  endAt: string;
+  status: UnitUpgradeStatusType;
+
+  unit: Unit;
 }
