@@ -19,6 +19,7 @@ import {
   setupProgress,
   setupTextTimer,
 } from './unit-card.helper';
+import { environment } from 'environments/environment';
 
 interface UnitCard extends Unit {
   raidCountdown$?: Observable<number> | null;
@@ -62,6 +63,8 @@ export class UnitCardComponent implements OnInit {
   canCollectLoot!: Signal<boolean>;
   canUpgrade!: Signal<boolean>;
 
+  apiBaseUrl = environment.gameApiBasePath;
+
   constructor(private unitsService: UnitsService) {}
 
   ngOnInit(): void {}
@@ -92,8 +95,13 @@ export class UnitCardComponent implements OnInit {
 
   private setupUnitState(): void {
     this.canSendToRaid = computed(() => {
-      const { active_raid, exp, maxExp, active_upgrade } = this.unit$();
-      return active_raid == null && exp < maxExp && active_upgrade == null;
+      const { active_raid, exp, maxExp, active_upgrade, level } = this.unit$();
+      return (
+        active_raid == null &&
+        exp < maxExp &&
+        active_upgrade == null &&
+        level < 10
+      );
     });
 
     this.canCollectLoot = computed(() => {
