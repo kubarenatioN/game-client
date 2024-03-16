@@ -4,3 +4,12 @@
   gap: 16px;
   max-width: 800px;
 }
+
+@media screen and (max-width: 600px) {
+  .cards-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    max-width: 420px;
+    width: 100%;
+  }
+}

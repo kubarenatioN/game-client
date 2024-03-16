@@ -1,7 +1,7 @@
 <div class="wrapper container">
   <h4>Your units</h4>
 
-  <div class="cards-container container">
+  <div class="cards-container">
     @for (unit of units$(); track unit.id) {
     <app-unit-card [unit]="unit"
                    [isLoading$]="unit.isLoading$"
