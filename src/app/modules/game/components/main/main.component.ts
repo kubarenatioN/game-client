@@ -8,7 +8,7 @@ import {
 import { Unit } from '@core/models';
 import { RaidService, UnitsService } from '@core/services';
 import { SessionService } from 'app/modules/auth/services';
-import { map } from 'rxjs';
+import { map, switchMap } from 'rxjs';
 
 interface BoardUnit extends Unit {
   isLoading$: WritableSignal<boolean>;
@@ -108,6 +108,38 @@ export class MainComponent implements OnInit {
             goldBalance: res.goldBalance,
           },
         });
+      },
+    });
+  }
+
+  onUpgrade(unitId: number) {
+    const unit = this.units.find((u) => u.id === unitId);
+    unit?.isLoading$.set(true);
+
+    this.unitsService
+      .upgrade(unitId)
+      .pipe(
+        switchMap((res) => {
+          return this.unitsService.get(unitId);
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          const index = this.units.findIndex((u) => u.id === res.id);
+          this.units[index] = new BoardUnit(res);
+
+          this.units$.set([...this.units]);
+        },
+      });
+  }
+
+  onUpgradeCompleted(unitId: number): void {
+    this.unitsService.get(unitId).subscribe({
+      next: (res) => {
+        const index = this.units.findIndex((u) => u.id === res.id);
+        this.units[index] = new BoardUnit(res);
+
+        this.units$.set([...this.units]);
       },
     });
   }

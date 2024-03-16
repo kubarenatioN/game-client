@@ -25,6 +25,7 @@ export type UnitUpgradeStatusType = 'in_progress' | 'completed';
 
 export interface UnitUpgrade {
   id: number;
+  startAt: string;
   endAt: string;
   status: UnitUpgradeStatusType;
 

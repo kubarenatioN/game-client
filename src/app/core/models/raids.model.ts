@@ -6,8 +6,8 @@ export interface Raid {
   id: number;
 
   status: RaidStatus;
-  startAt: Date;
-  endAt: Date;
+  startAt: string;
+  endAt: string;
 
   // relations
   unit?: Unit;

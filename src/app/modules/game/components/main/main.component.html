@@ -7,7 +7,9 @@
                    [isLoading$]="unit.isLoading$"
                    (collected)="onCollectRaidLoot($event)"
                    (sentToRaid)="onSendToRaid($event)"
-                   (raidReturned)="onRaidReturned($event)"></app-unit-card>
+                   (raidReturned)="onRaidReturned($event)"
+                   (upgrade)="onUpgrade($event)"
+                   (upgradeCompleted)="onUpgradeCompleted($event)"></app-unit-card>
     }
     @empty {
     <div>No units yet...</div>

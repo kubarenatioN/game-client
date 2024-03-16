@@ -1,4 +1,7 @@
-<div class="unit-card">
+<div class="card">
+  <img class="card__img"
+       [src]="'http://localhost:3000/assets/game/images/units/'+ unit.model?.id + '.webp'"
+       [alt]="unit.model?.name">
   <h4>#{{ unit.id }} {{ unit.model?.name }}</h4>
   <div>
     <div>
@@ -9,8 +12,8 @@
     </div>
   </div>
 
+  @if(canSendToRaid()) {
   <div class="raid">
-    @if(canSendToRaid()) {
     <button mat-raised-button
             color="accent"
             type="button"
@@ -18,14 +21,14 @@
             (click)="onSendToRaid(unit.id)">
       Send to raid
     </button>
-    }
   </div>
+  }
 
   @if (canCollectLoot()) {
   <div>
-    <button mat-raised-button
+    <button mat-stroked-button
             type="button"
-            color="primary"
+            color="accent"
             [disabled]="isLoading$()"
             (click)="onCollectLoot(unit)">
       Collect Loot
@@ -33,26 +36,39 @@
   </div>
   }
 
-  @if(unit.exp > unit.maxExp && !unit.active_upgrade) {
-  <button (click)="onUpgrade(unit.id)">Upgrade</button>
-  } @else {
-  <button disabled>Upgrade</button>
+  @if(unit.exp > unit.maxExp && canUpgrade()) {
+  <button mat-raised-button
+          type="button"
+          color="accent"
+          [disabled]="isLoading$()"
+          (click)="onUpgrade(unit.id)">Upgrade</button>
   }
 
-  <div class="raid-progress">
-    <!-- @if (unit.raidCountdown$ | async; as progress) {
-    <div>
-      {{ progress }}
-    </div>
-    } -->
+  @if (unit.active_raid) {
+  <div class="raid-progress__container">
+    @if (unit.raidTimer$ | async; as duration) {
+    <div class="raid-progress__duration">raid: {{ duration }}</div>
+    }
     @if (unit.raidProgress$ | async; as progress) {
-    <div class="unit-card__raid-progress">
-      <div class="unit-card__raid-progress-indicator"
+    <div class="raid-progress__bar">
+      <div class="raid-progress__bar-indicator"
            [style.width.%]="progress"></div>
     </div>
     }
-    <!-- @if (unit.raidDurationCounter$ | async; as countdown) {
-    <div>{{ countdown }}</div>
-    } -->
   </div>
+  }
+
+  @if (unit.active_upgrade) {
+  <div class="upgrade-progress__container">
+    @if (unit.upgradeTimer$ | async; as duration) {
+    <div class="upgrade-progress__duration">upgrade: {{ duration }}</div>
+    }
+    @if (unit.upgradeProgress$ | async; as progress) {
+    <div class="upgrade-progress__bar">
+      <div class="upgrade-progress__bar-indicator"
+           [style.width.%]="progress"></div>
+    </div>
+    }
+  </div>
+  }
 </div>

@@ -14,11 +14,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { Unit } from '@core/models';
 import { UnitsService } from '@core/services';
 import { Observable } from 'rxjs';
-import { setupRaidCountdown, setupRaidProgress } from './unit-card.helper';
+import {
+  setupCountdown,
+  setupProgress,
+  setupTextTimer,
+} from './unit-card.helper';
 
 interface UnitCard extends Unit {
-  raidCountdown$?: Observable<number | null> | null;
-  raidProgress$?: Observable<number | null> | null;
+  raidCountdown$?: Observable<number> | null;
+  raidProgress$?: Observable<number> | null;
+  raidTimer$?: Observable<string> | null;
+
+  upgradeCountdown$?: Observable<number> | null;
+  upgradeProgress$?: Observable<number> | null;
+  upgradeTimer$?: Observable<string> | null;
 }
 
 @Component({
@@ -42,6 +51,8 @@ export class UnitCardComponent implements OnInit {
   @Output() sentToRaid = new EventEmitter<number>();
   @Output() raidReturned = new EventEmitter<number>();
   @Output() collected = new EventEmitter<number>();
+  @Output() upgrade = new EventEmitter<number>();
+  @Output() upgradeCompleted = new EventEmitter<number>();
 
   get unit(): UnitCard {
     return this.unit$();
@@ -53,11 +64,13 @@ export class UnitCardComponent implements OnInit {
 
   constructor(private unitsService: UnitsService) {}
 
-  ngOnInit(): void {
-    this.setupUnitState();
-  }
+  ngOnInit(): void {}
 
   onSendToRaid(unitId: number) {
+    if (this.unit.active_raid) {
+      return;
+    }
+
     this.sentToRaid.emit(unitId);
   }
 
@@ -70,11 +83,11 @@ export class UnitCardComponent implements OnInit {
   }
 
   onUpgrade(id: number) {
-    this.unitsService.upgrade(id).subscribe({
-      next: (res) => {
-        console.log('after upgrade', res);
-      },
-    });
+    if (this.unit.active_upgrade) {
+      return;
+    }
+
+    this.upgrade.emit(id);
   }
 
   private setupUnitState(): void {
@@ -88,19 +101,46 @@ export class UnitCardComponent implements OnInit {
       return active_raid?.status === 'returned';
     });
 
-    const { active_raid } = this.unit;
+    this.canUpgrade = computed(() => {
+      const { active_raid, active_upgrade } = this.unit$();
+      return active_raid == null && active_upgrade == null;
+    });
+
+    const { active_raid, active_upgrade } = this.unit;
     if (active_raid?.status === 'in_progress') {
-      const countdown$ = setupRaidCountdown(active_raid, () => {
+      const onComplete = () => {
         this.unit.raidCountdown$ = null;
         this.unit.raidProgress$ = null;
+        this.unit.raidTimer$ = null;
 
         if (this.unit.active_raid) {
           this.raidReturned.emit(this.unit.id);
         }
-      });
+      };
+
+      const countdown$ = setupCountdown(active_raid, onComplete);
 
       this.unit.raidCountdown$ = countdown$;
-      this.unit.raidProgress$ = setupRaidProgress(active_raid, countdown$);
+      this.unit.raidProgress$ = setupProgress(active_raid, countdown$);
+      this.unit.raidTimer$ = setupTextTimer(countdown$);
+    }
+
+    if (active_upgrade?.status === 'in_progress') {
+      const onComplete = () => {
+        this.unit.upgradeCountdown$ = null;
+        this.unit.upgradeProgress$ = null;
+        this.unit.upgradeTimer$ = null;
+
+        if (this.unit.active_upgrade) {
+          this.upgradeCompleted.emit(this.unit.id);
+        }
+      };
+
+      const countdown$ = setupCountdown(active_upgrade, onComplete);
+
+      this.unit.upgradeCountdown$ = countdown$;
+      this.unit.upgradeProgress$ = setupProgress(active_upgrade, countdown$);
+      this.unit.upgradeTimer$ = setupTextTimer(countdown$);
     }
   }
 }
