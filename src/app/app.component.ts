@@ -19,13 +19,6 @@ export class AppComponent implements OnInit {
   constructor(private sessionService: SessionService, private router: Router) {}
 
   ngOnInit(): void {
-    this.sessionService.user$.subscribe({
-      next: (res) => {
-        if (res === null && this.sessionService.session === null) {
-          this.router.navigate(['/auth']);
-        }
-      },
-    });
     this.sessionService.loadUserSession().subscribe();
 
     // Debug session
@@ -36,5 +29,7 @@ export class AppComponent implements OnInit {
 
   logout(): void {
     this.sessionService.disposeSession();
+
+    this.router.navigate(['/auth']);
   }
 }

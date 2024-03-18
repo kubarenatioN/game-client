@@ -22,6 +22,7 @@ export class SessionService {
   set session(val: string | null) {
     this.sessionStore$.next(val);
     this.sessionStore = val;
+
     if (val && typeof val === 'string') {
       localStorage.setItem('sid', val);
     } else {
@@ -84,6 +85,5 @@ export class SessionService {
   disposeSession() {
     this.user = null;
     this.session = null;
-    localStorage.removeItem('sid');
   }
 }
