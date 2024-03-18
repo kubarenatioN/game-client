@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { SessionService } from './modules/auth/services';
 
 @Component({
@@ -14,16 +14,27 @@ import { SessionService } from './modules/auth/services';
 export class AppComponent implements OnInit {
   http = inject(HttpClient);
 
-  user$ = this.sessionService.session$;
+  user$ = this.sessionService.user$;
 
-  constructor(private sessionService: SessionService) {}
+  constructor(private sessionService: SessionService, private router: Router) {}
 
   ngOnInit(): void {
-    this.sessionService.getSession().subscribe();
+    this.sessionService.user$.subscribe({
+      next: (res) => {
+        if (res === null && this.sessionService.session === null) {
+          this.router.navigate(['/auth']);
+        }
+      },
+    });
+    this.sessionService.loadUserSession().subscribe();
 
     // Debug session
     // this.sessionService.session$.subscribe((res) => {
     //   console.log('app component', res);
     // });
+  }
+
+  logout(): void {
+    this.sessionService.disposeSession();
   }
 }

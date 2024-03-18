@@ -50,8 +50,9 @@ export class LoginComponent {
         password,
       })
       .subscribe({
-        next: (res) => {
-          this.sessionService.session = res;
+        next: ({ user, session }) => {
+          this.sessionService.user = user;
+          this.sessionService.session = session;
 
           this.router.navigate(['/']);
         },

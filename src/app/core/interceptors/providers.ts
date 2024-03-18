@@ -18,11 +18,13 @@ export const apiInterceptor: HttpInterceptorFn = (
   const env = inject(APP_ENV);
   const { gameApiBasePath, gameApiPrefix } = env;
 
-  const url = `${gameApiBasePath}/${gameApiPrefix}${req.url}`;
+  const isApiUrl = !req.url.startsWith('/assets');
 
-  req = req.clone({
-    url,
-  });
+  if (isApiUrl) {
+    req = req.clone({
+      url: `${gameApiBasePath}/${gameApiPrefix}${req.url}`,
+    });
+  }
 
   return next(req);
 };
@@ -31,9 +33,21 @@ export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
   next: HttpHandlerFn
 ) => {
-  req = req.clone({
-    withCredentials: true,
-  });
+  const token = localStorage.getItem('sid');
+  if (token) {
+    req = req.clone({
+      setHeaders: {
+        Authorization: token,
+      },
+    });
+  }
+
+  /**
+   * Cookie auth implementation. Stopped because of Safari & iOS support
+   */
+  // req = req.clone({
+  //   withCredentials: true,
+  // });
 
   return next(req);
 };

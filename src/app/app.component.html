@@ -8,7 +8,11 @@
       <span>
         Balance: {{ user.account.goldBalance | number : '1.2-2' }}
       </span>
-      } @else {
+      <button (click)="logout()">
+        Logout
+      </button>
+      }
+      @else {
       <span>
         User: not signed in
       </span>

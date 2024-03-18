@@ -10,9 +10,9 @@ export const routes: Routes = [
       (route: Route) => {
         const router = inject(Router);
         const sessionService = inject(SessionService);
-        return sessionService.session$.pipe(
-          map((session) => {
-            if (session) {
+        return sessionService.user$.pipe(
+          map((user) => {
+            if (user) {
               return router.parseUrl('/');
             }
             return true;
@@ -29,9 +29,9 @@ export const routes: Routes = [
       (route: Route) => {
         const router = inject(Router);
         const sessionService = inject(SessionService);
-        return sessionService.session$.pipe(
-          map((session) => {
-            if (!session) {
+        return sessionService.user$.pipe(
+          map((user) => {
+            if (!user) {
               return router.parseUrl('/auth');
             }
             return true;
