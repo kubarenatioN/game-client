@@ -6,9 +6,10 @@ import {
   signal,
 } from '@angular/core';
 import { Unit } from '@core/models';
-import { RaidService, UnitsService } from '@core/services';
+import { GameService, RaidService, UnitsService } from '@core/services';
 import { SessionService } from 'app/modules/auth/services';
 import { map, switchMap } from 'rxjs';
+import { HeroCardData } from '../../standalone/hero-card/hero-card.component';
 
 export interface BoardUnit extends Unit {
   isLoading$: WritableSignal<boolean>;
@@ -31,8 +32,11 @@ export class MainComponent implements OnInit {
   unitsService = inject(UnitsService);
   raidsService = inject(RaidService);
   sessionService = inject(SessionService);
+  gameService = inject(GameService);
 
   units$ = signal<BoardUnit[]>([]);
+
+  heroes = signal<HeroCardData[]>([]);
 
   get units(): BoardUnit[] {
     return this.units$();
@@ -53,6 +57,11 @@ export class MainComponent implements OnInit {
           this.units$.set(res);
         },
       });
+
+    const user = this.sessionService.user;
+    if (user && user.walletAddress) {
+      this.getAddressTokens(user.walletAddress);
+    }
   }
 
   onSendToRaid(unitId: number) {
@@ -137,4 +146,37 @@ export class MainComponent implements OnInit {
       },
     });
   }
+
+  async getAddressTokens(address: string) {
+    const contract = this.gameService.getMonkeysContract();
+
+    const tokensCount = await contract.balanceOf(address);
+
+    const heroes = [];
+    for (let i = 0; i < tokensCount; i++) {
+      console.log('getting token meta...', i);
+      const tokenId = await contract.tokenOfOwnerByIndex(address, i);
+
+      const tokenUri: string = await contract.tokenURI(tokenId);
+
+      const tokenMetaUrl = ipfsUriToHttp(tokenUri);
+      const tokenMeta = await (await fetch(tokenMetaUrl)).json();
+      const { image, name, attributes, dna, edition, description } = tokenMeta;
+
+      heroes.push({
+        imageSrc: ipfsUriToHttp(image),
+        name,
+        dna,
+        attributes,
+        edition,
+        description,
+      });
+    }
+
+    this.heroes.set(heroes);
+  }
+}
+
+function ipfsUriToHttp(ipfsUri: string) {
+  return `https://ipfs.io/ipfs/${String(ipfsUri).slice(7)}`;
 }

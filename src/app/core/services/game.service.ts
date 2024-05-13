@@ -1,11 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { CryptoMonkeys } from '@core/tokens/abis';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class GameService {
-  http = inject(HttpClient);
+  private http = inject(HttpClient);
 
-  constructor() { }
+  constructor() {}
+
+  getMonkeysContract(): CryptoMonkeys {
+    return new CryptoMonkeys();
+  }
 }

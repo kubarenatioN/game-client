@@ -1,5 +1,5 @@
 <div class="wrapper container">
-  <h4>Your units</h4>
+  <h4>Units</h4>
 
   <div class="cards-container">
     @for (unit of units$(); track unit.id) {
@@ -15,4 +15,19 @@
     <div>No units yet...</div>
     }
   </div>
+
+  <div>
+    <h4>Heroes</h4>
+
+    <div class="cards-container">
+      @for (hero of heroes(); track hero.name) {
+      <app-hero-card [hero]="hero">
+      </app-hero-card>
+      }
+      @empty {
+      <div>No heroes yet...</div>
+      }
+    </div>
+  </div>
+
 </div>

@@ -6,6 +6,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule, Routes } from '@angular/router';
 import { MainComponent } from './components';
 import { GameService } from './services/game.service';
+import { HeroCardComponent } from './standalone/hero-card/hero-card.component';
 import { UnitCardComponent } from './standalone/unit-card/unit-card.component';
 
 const routes: Routes = [
@@ -26,6 +27,7 @@ const routes: Routes = [
     MatDialogModule,
 
     UnitCardComponent,
+    HeroCardComponent,
   ],
   providers: [GameService],
 })
