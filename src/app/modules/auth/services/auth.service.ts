@@ -11,7 +11,7 @@ import {
   providedIn: 'root',
 })
 export class AuthService {
-  http = inject(HttpClient);
+  private http = inject(HttpClient);
 
   login(data: UserLoginModel) {
     return this.http.post<LoginResponse>(`/v1/auth/login`, data);
@@ -19,6 +19,10 @@ export class AuthService {
 
   register(data: UserRegisterModel) {
     return this.http.post<RegisterResponse>(`/v1/auth/register`, data);
+  }
+
+  logout() {
+    return this.http.get<unknown>(`/v1/auth/logout`);
   }
 
   refresh() {

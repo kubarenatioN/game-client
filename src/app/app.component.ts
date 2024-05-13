@@ -3,7 +3,11 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Component, NgZone, OnInit, inject } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { switchMap } from 'rxjs';
-import { AuthWeb3Service, SessionService } from './modules/auth/services';
+import {
+  AuthService,
+  AuthWeb3Service,
+  SessionService,
+} from './modules/auth/services';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +25,7 @@ export class AppComponent implements OnInit {
 
   constructor(
     private sessionService: SessionService,
+    private authService: AuthService,
     private web3Auth: AuthWeb3Service
   ) {}
 
@@ -36,11 +41,9 @@ export class AppComponent implements OnInit {
       )
       .subscribe({
         next: (address) => {
-          console.log('saved address', address);
-
           const currentUser = this.sessionService.user;
           if (address !== currentUser?.walletAddress) {
-            this.disposeSession();
+            this.logout();
           }
         },
         error: (err) => {
@@ -52,7 +55,9 @@ export class AppComponent implements OnInit {
       next: () => {
         /** Logout user if switch wallet */
         this.zone.run(() => {
-          this.disposeSession();
+          if (this.sessionService.user) {
+            this.logout();
+          }
         });
       },
     });
@@ -71,14 +76,15 @@ export class AppComponent implements OnInit {
   }
 
   logout(): void {
-    this.sessionService.disposeSession();
-
-    this.router.navigate(['/auth']);
+    this.authService.logout().subscribe({
+      next: () => {
+        this.disposeSession();
+      },
+    });
   }
 
   private disposeSession() {
     this.sessionService.disposeSession();
-
     this.router.navigate(['/auth']);
   }
 }
