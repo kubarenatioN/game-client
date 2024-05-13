@@ -12,16 +12,15 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { Unit } from '@core/models';
-import { UnitsService } from '@core/services';
 import { Observable } from 'rxjs';
+import { BoardUnit } from '../../components';
 import {
   setupCountdown,
   setupProgress,
   setupTextTimer,
 } from './unit-card.helper';
-import { environment } from 'environments/environment';
 
-interface UnitCard extends Unit {
+interface UnitCard extends BoardUnit {
   raidCountdown$?: Observable<number> | null;
   raidProgress$?: Observable<number> | null;
   raidTimer$?: Observable<string> | null;
@@ -41,7 +40,7 @@ interface UnitCard extends Unit {
 export class UnitCardComponent implements OnInit {
   private unit$!: WritableSignal<UnitCard>;
 
-  @Input({ required: true }) set unit(val: Unit) {
+  @Input({ required: true }) set unit(val: BoardUnit) {
     this.unit$ = signal(val);
 
     this.setupUnitState();
@@ -63,10 +62,6 @@ export class UnitCardComponent implements OnInit {
   canCollectLoot!: Signal<boolean>;
   canUpgrade!: Signal<boolean>;
 
-  apiBaseUrl = environment.gameApiBasePath;
-
-  constructor(private unitsService: UnitsService) {}
-
   ngOnInit(): void {}
 
   onSendToRaid(unitId: number) {
@@ -74,6 +69,7 @@ export class UnitCardComponent implements OnInit {
       return;
     }
 
+    this.unit.isLoading$.set(true);
     this.sentToRaid.emit(unitId);
   }
 
@@ -82,6 +78,7 @@ export class UnitCardComponent implements OnInit {
       return;
     }
 
+    this.unit.isLoading$.set(true);
     this.collected.emit(unit.active_raid.id);
   }
 
@@ -90,6 +87,7 @@ export class UnitCardComponent implements OnInit {
       return;
     }
 
+    this.unit.isLoading$.set(true);
     this.upgrade.emit(id);
   }
 

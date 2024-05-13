@@ -10,11 +10,11 @@ import { RaidService, UnitsService } from '@core/services';
 import { SessionService } from 'app/modules/auth/services';
 import { map, switchMap } from 'rxjs';
 
-interface BoardUnit extends Unit {
+export interface BoardUnit extends Unit {
   isLoading$: WritableSignal<boolean>;
 }
 
-class BoardUnit {
+export class BoardUnit {
   constructor(data: Unit) {
     this.isLoading$ = signal(false);
 
@@ -56,9 +56,6 @@ export class MainComponent implements OnInit {
   }
 
   onSendToRaid(unitId: number) {
-    const unit = this.units.find((u) => u.id === unitId);
-    unit?.isLoading$.set(true);
-
     this.unitsService.sendToRaid(unitId).subscribe({
       next: (res) => {
         const { active_raid } = res;
@@ -103,8 +100,8 @@ export class MainComponent implements OnInit {
         this.units[changedUnitIndex] = new BoardUnit(res.unit);
 
         this.units$.set(this.units);
-        this.sessionService.patchSessionState({
-          account: {
+        this.sessionService.patchUserState({
+          gameAccount: {
             goldBalance: res.goldBalance,
           },
         });
@@ -113,9 +110,6 @@ export class MainComponent implements OnInit {
   }
 
   onUpgrade(unitId: number) {
-    const unit = this.units.find((u) => u.id === unitId);
-    unit?.isLoading$.set(true);
-
     this.unitsService
       .upgrade(unitId)
       .pipe(

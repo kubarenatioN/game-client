@@ -68,3 +68,13 @@
     }
   }
 }
+
+@media screen and (max-width: 600px) {
+  .card {
+    padding: 6px;
+
+    &__img {
+      width: 100px;
+    }
+  }
+}

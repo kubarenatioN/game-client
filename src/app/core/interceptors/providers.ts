@@ -5,11 +5,9 @@ import {
   HttpRequest,
 } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { APP_ENV } from '@core/tokens';
-import { SessionService } from 'app/modules/auth/services';
-import { environment } from 'environments/environment';
-import { EMPTY, catchError } from 'rxjs';
+import { AuthService } from 'app/modules/auth/services';
+import { BehaviorSubject, catchError, filter, switchMap, take } from 'rxjs';
 
 export const apiInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
@@ -18,11 +16,13 @@ export const apiInterceptor: HttpInterceptorFn = (
   const env = inject(APP_ENV);
   const { gameApiBasePath, gameApiPrefix } = env;
 
-  const url = `${gameApiBasePath}/${gameApiPrefix}${req.url}`;
+  const isApiUrl = !req.url.startsWith('/assets');
 
-  req = req.clone({
-    url,
-  });
+  if (isApiUrl) {
+    req = req.clone({
+      url: `${gameApiBasePath}/${gameApiPrefix}${req.url}`,
+    });
+  }
 
   return next(req);
 };
@@ -31,47 +31,104 @@ export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
   next: HttpHandlerFn
 ) => {
-  req = req.clone({
-    withCredentials: true,
-  });
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    req = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  /**
+   * Cookie auth implementation. Stopped because of Safari & iOS support
+   */
+  // req = req.clone({
+  //   withCredentials: true,
+  // });
 
   return next(req);
 };
 
 /**
- * Listens for 401 http error response and unauthorizes current user with redirect to auth.
+ * Listens for 401 http error response.
  */
-export const unauthorizedInterceptor: HttpInterceptorFn = (
-  req: HttpRequest<any>,
-  next: HttpHandlerFn
-) => {
-  const sessionService = inject(SessionService);
-  const router = inject(Router);
+export const unauthorizedInterceptor: () => HttpInterceptorFn = () => {
+  let isRefreshing = false;
+  const refreshTokenStore$ = new BehaviorSubject<string | null>(null);
+  const blacklistUrls = [] as string[];
+  let authService: AuthService;
 
-  return next(req).pipe(
-    catchError((err) => {
-      if (err instanceof HttpErrorResponse) {
-        if (err.status === 401) {
-          if (!environment.production) {
-            console.warn('unauthorized. session was disposed');
+  function handleUnauthorizedResponse(
+    req: HttpRequest<any>,
+    next: HttpHandlerFn
+  ) {
+    if (!isRefreshing) {
+      isRefreshing = true;
+      refreshTokenStore$.next(null);
+
+      return authService.refresh().pipe(
+        switchMap(({ accessToken }) => {
+          isRefreshing = false;
+
+          // console.log('new accessToken:', accessToken.slice(-10));
+          localStorage.setItem('accessToken', accessToken);
+          refreshTokenStore$.next(accessToken);
+
+          req = addTokenToReq(req, accessToken);
+
+          return next(req);
+        }),
+        catchError((err) => {
+          isRefreshing = false;
+
+          throw err;
+        })
+      );
+    }
+
+    return refreshTokenStore$.pipe(
+      filter(Boolean),
+      take(1),
+      switchMap((token) => {
+        console.log('refreshTokenStore');
+        addTokenToReq(req, token);
+        return next(req);
+      })
+    );
+  }
+
+  return (req: HttpRequest<any>, next: HttpHandlerFn) => {
+    const accessToken = req.headers.get('authorization');
+    authService = inject(AuthService);
+
+    return next(req).pipe(
+      catchError((err) => {
+        if (err instanceof HttpErrorResponse) {
+          if (
+            err.status === 401 &&
+            !blacklistUrls.some((url) => req.url.includes(url)) &&
+            accessToken
+          ) {
+            return handleUnauthorizedResponse(req, next);
           }
-
-          sessionService.disposeSession();
-          router.navigate(['/auth/login'], {
-            replaceUrl: true,
-          });
-
-          return EMPTY;
         }
-      }
-
-      throw err;
-    })
-  );
+        throw err;
+      })
+    );
+  };
 };
+
+function addTokenToReq(req: HttpRequest<any>, token: string): HttpRequest<any> {
+  return req.clone({
+    setHeaders: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
 
 export const interceptors: HttpInterceptorFn[] = [
   apiInterceptor,
   authInterceptor,
-  unauthorizedInterceptor,
+  unauthorizedInterceptor(),
 ];
