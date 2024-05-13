@@ -6,7 +6,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { SessionService } from '../../services';
+import { EMPTY, switchMap } from 'rxjs';
+import { AuthWeb3Service, SessionService } from '../../services';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -18,6 +19,7 @@ import { AuthService } from '../../services/auth.service';
 })
 export class LoginComponent {
   private authService = inject(AuthService);
+  private authWeb3 = inject(AuthWeb3Service);
   private router = inject(Router);
   private sessionService = inject(SessionService);
 
@@ -54,6 +56,29 @@ export class LoginComponent {
           this.sessionService.user = user;
           this.sessionService.session = session;
 
+          this.router.navigate(['/']);
+        },
+      });
+  }
+
+  loginWithWallet(): void {
+    this.authWeb3
+      .loginViaWallet()
+      .pipe(
+        switchMap((res) => {
+          if (res) {
+            const { accessToken } = res;
+            this.sessionService.session = accessToken;
+
+            return this.sessionService.loadUserSession();
+          }
+
+          return EMPTY;
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          this.sessionService.user = res;
           this.router.navigate(['/']);
         },
       });

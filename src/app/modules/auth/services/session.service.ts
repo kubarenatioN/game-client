@@ -1,6 +1,7 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, ReplaySubject, catchError, of, tap } from 'rxjs';
+import { Router } from '@angular/router';
+import { Observable, ReplaySubject } from 'rxjs';
 import { User } from '../models';
 
 @Injectable({
@@ -23,10 +24,10 @@ export class SessionService {
     this.sessionStore$.next(val);
     this.sessionStore = val;
 
-    if (val && typeof val === 'string') {
-      localStorage.setItem('sid', val);
+    if (val) {
+      localStorage.setItem('accessToken', val);
     } else {
-      localStorage.removeItem('sid');
+      localStorage.removeItem('accessToken');
     }
   }
 
@@ -50,25 +51,10 @@ export class SessionService {
   constructor() {}
 
   loadUserSession() {
-    return this.http.get<User>(`/v1/auth/self`).pipe(
-      catchError((err: HttpErrorResponse) => {
-        /**
-         * Handle session not found and set empty session
-         */
-        console.error(err);
-        return of(null);
-      }),
-      tap((res) => {
-        if (res) {
-          this.user = res;
-        } else {
-          this.disposeSession();
-        }
-      })
-    );
+    return this.http.get<User>(`/v1/auth/self`);
   }
 
-  patchUserState(update: Omit<User, 'id' | 'login'>) {
+  patchUserState(update: Partial<User>) {
     const oldSession = structuredClone(this.user);
 
     if (oldSession === null) {

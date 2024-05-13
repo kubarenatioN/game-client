@@ -101,7 +101,7 @@ export class MainComponent implements OnInit {
 
         this.units$.set(this.units);
         this.sessionService.patchUserState({
-          account: {
+          gameAccount: {
             goldBalance: res.goldBalance,
           },
         });

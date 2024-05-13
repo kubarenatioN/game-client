@@ -20,4 +20,8 @@ export class AuthService {
   register(data: UserRegisterModel) {
     return this.http.post<RegisterResponse>(`/v1/auth/register`, data);
   }
+
+  refresh() {
+    return this.http.get<{ accessToken: string }>(`/v1/token/refresh`);
+  }
 }
