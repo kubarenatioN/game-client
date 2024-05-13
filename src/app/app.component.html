@@ -3,10 +3,10 @@
     <div>
       @if (user$ | async; as user) {
       <span>
-        User: {{ user.login }} |
+        User: {{ user.login ?? user.walletAddress }} |
       </span>
       <span>
-        Balance: {{ user.account.goldBalance | number : '1.2-2' }}
+        Balance: {{ user.gameAccount.goldBalance | number : '1.2-2' }}
       </span>
       <button (click)="logout()">
         Logout
